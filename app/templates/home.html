@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница со списком категорий</title>
+</head>
+<body>
+    <h1>Главная страница</h1>
+    <div class="new_category">
+        <h2>Добавьте новую категорию:</h2>
+        <form action="/new_category" method="POST">
+            <select name="parent">
+                <option value="None">Не выбрано</option>
+                {% for category in categoryes %}
+                    <option value="{{category[0]}}">{{category[1]}}</option>
+                {% endfor %}
+            </select>
+            <input type="text" maxlength="50", name="name">
+            <input type="submit" value="Добавить новую категорию">
+        </form>
+    </div>
+    <br><br>
+    <h2 class="list_title">Все категории</h2>
+    <div class="list">
+        {% for category in category_tree.values() recursive %}
+            <a href="category/{{category.id}}">
+                <p data-id="{{category.id}}">{{category.id}} - {{category.name}}</p>
+            </a>
+            {% if category.childrens %}
+                <div style="padding-left: 20px;">
+                    <p >{{ loop(category.childrens.values()) }}</p>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</body>
+</html>

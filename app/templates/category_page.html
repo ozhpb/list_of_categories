@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница со списком категорий</title>
+</head>
+<body>
+    <div class="breadcrumps">
+        <p>Навигация</p>
+        <a href="/">
+            <span>Все категории</span>
+        </a>
+        {% for bread_crump in bread_crumps %}
+            <span>/</span>
+            <a href="/category/{{bread_crump[0]}}">
+                <span>{{bread_crump[1]}}</span>
+            </a>
+        {% endfor %}
+    </div>
+    <br>
+    <p>О категории</p>
+    <div class="manage">
+        <form  method="POST" action="/category/update/{{category.id}}">
+            <input type="text" name="name" value="{{category.name}}">
+            <input style="display: block;" type="submit" value="Изменить">
+        </form>
+        <form method="GET" action="/category/delete/{{category.id}}">
+            <input type="submit" value="Удалить">
+        </form>
+    </div>
+</body>
+</html>
