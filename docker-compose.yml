@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+  db:
+    image: postgres:16.1
+    restart: always
+    volumes:
+      - ./pgdata:/var/run/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: root_user
+      POSTGRES_PASSWORD: root_password
+      POSTGRES_DB: categoryes
