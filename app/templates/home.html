@@ -25,7 +25,7 @@
     <div class="list">
         {% for category in category_tree.values() recursive %}
             <a href="category/{{category.id}}">
-                <p data-id="{{category.id}}">{{category.id}} - {{category.name}}</p>
+                <p data-id="{{category.id}}">{{category.name}}</p>
             </a>
             {% if category.childrens %}
                 <div style="padding-left: 20px;">

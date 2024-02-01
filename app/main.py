@@ -6,9 +6,19 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import starlette.status as status
 import psycopg
+from dotenv import dotenv_values
 
 
 app = FastAPI()
+
+config = dotenv_values("../.env")
+pg_data = {
+    "host": config["PG_HOST"],
+    "port": int(config["PG_PORT"]),
+    "dbname": config["PG_DB"],
+    "user": config["PG_USER"],
+    "password": config["PG_PASSWORD"]
+}
 
 # Подключение директории шаблонов
 templates = Jinja2Templates(directory="./templates")
@@ -19,11 +29,11 @@ def open_session(func):
     Декоратор для получения сессии к БД.
     """
     def wrapper(*args, **kwargs):
-        with psycopg.connect(host="localhost",
-                             port=5433,
-                             dbname="categoryes",
-                             user="root_user",
-                             password="root_password") as connection:
+        with psycopg.connect(host=pg_data["host"],
+                             port=pg_data["port"],
+                             user=pg_data["user"],
+                             password=pg_data["password"],
+                             dbname=pg_data["dbname"]) as connection:
             with connection.cursor() as cursor:
                 data = func(*args, session=cursor, **kwargs)
                 return data
@@ -98,6 +108,21 @@ def get_category_by_id(id: int, session=None) -> dict:
     """
     session.execute("SELECT id, name, parent_id FROM category "
                     f"WHERE category.id = {id}")
+    categoryes = session.fetchone()
+    return convert_to_dict(categoryes)
+
+
+@open_session
+def get_category_by_name_parent_id(name: str, parent_id: int, session=None) -> dict:
+    """
+    Получить категорию по идентификатору и родительскому идентификатору.
+    @name: имя категории
+    @parent_id: идентификатор родительской категории
+    """
+    parent_sybquery = "category.parent_id"
+    parent_sybquery = parent_sybquery + f"= {parent_id}" if parent_id != "NULL" else parent_sybquery + " is NULL;"
+    session.execute("SELECT id, name, parent_id FROM category "
+                    f"WHERE category.name = '{name}' AND " + parent_sybquery)
     categoryes = session.fetchone()
     return convert_to_dict(categoryes)
 
@@ -195,10 +220,18 @@ def save_category_view(parent: Annotated[str, Form()],
     parent_id = "NULL" if parent == "None" else int(parent)
     name = name.strip()
     if len(name) > 0 and len(name) < 51:
-        id = save_category(name, parent_id)
-        return RedirectResponse(
-                    f"/category/{id}",
-                    status_code=status.HTTP_302_FOUND)
+        exists_category = get_category_by_name_parent_id(name, parent_id)
+        if exists_category is None:
+            id = save_category(name, parent_id)
+            return RedirectResponse(
+                        f"/category/{id}",
+                        status_code=status.HTTP_302_FOUND)
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Категория с таким названием и родительской категорией"
+                       "уже существует."
+        )
     else:
         raise HTTPException(
             status_code=400,

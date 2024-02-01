@@ -5,11 +5,23 @@ services:
     image: postgres:16.1
     restart: always
     volumes:
-      - ./pgdata:/var/run/postgresql
+      - ./pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - 5433:5432
+      - 5433:${PG_PORT}
     environment:
-      POSTGRES_USER: root_user
-      POSTGRES_PASSWORD: root_password
-      POSTGRES_DB: categoryes
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+    
+  app:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - 8888:8888
+    environment:
+      PG_PORT: ${PG_PORT}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_DB: ${PG_DB}
+    
